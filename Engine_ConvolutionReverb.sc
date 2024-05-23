@@ -6,7 +6,8 @@ Engine_ConvolutionReverb : CroneEngine {
   }
 
   alloc {
-    irBuffer.alloc(44100, 2); // Example allocation size
+    // Example allocation size; adjust as needed
+    irBuffer.alloc(44100, 2);
   }
 
   set_ir(path) {
@@ -30,12 +31,17 @@ Engine_ConvolutionReverb : CroneEngine {
   set_dry_wet(val) {
     dryWet = val;
   }
+
+  process {
+    Ndef(\convolution_reverb, {
+      var input = SoundIn.ar(0!2);
+      var wet = Convolution2.ar(input, irBuffer, 2048) * size;
+      var dry = input * (1 - dryWet);
+      Out.ar(0, wet + dry);
+    }).play;
+  }
 }
 
 s.waitForBoot {
-  Ndef(\convolution_reverb, {
-    var input = SoundIn.ar(0!2);
-    var output = \convolution_reverb.irBuffer.play(input);
-    Out.ar(0, output);
-  }).play;
+  Ndef(\convolution_reverb).play;
 }
